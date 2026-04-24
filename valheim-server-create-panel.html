@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Midgard Reborn — Valheim Server Panel</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0e14;
+  --bg2:#0f1520;
+  --surface:#131c28;
+  --surface2:#1a2535;
+  --surface3:#212f42;
+  --border:#1e2d42;
+  --border2:#2a3d56;
+  --gold:#c9a227;
+  --gold2:#e8c547;
+  --gold3:#f5d76e;
+  --gold-dim:rgba(201,162,39,0.15);
+  --text:#d4c9b0;
+  --text2:#8a9ab0;
+  --text3:#4a5a6e;
+  --success:#2d6a4f;
+  --success-t:#52b788;
+  --danger:#7b2d2d;
+  --danger-t:#e07070;
+  --info:#1a4a7a;
+  --info-t:#6baed6;
+  --warn-t:#e8a838;
+  --radius:6px;
+  --radius-lg:10px;
+  --font-d:'Cinzel',serif;
+  --font-b:'Crimson Pro',serif;
+  --font-m:'JetBrains Mono',monospace;
+}
+
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-b);font-size:16px;line-height:1.6;min-height:100vh}
+
+/* ── LAYOUT ── */
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-brand{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid var(--border)}
+.brand-rune{font-size:28px;color:var(--gold);opacity:.7;display:block;margin-bottom:.4rem}
+.brand-title{font-family:var(--font-d);font-size:14px;letter-spacing:3px;color:var(--gold2);display:block;font-weight:600}
+.brand-sub{font-size:12px;color:var(--text3);letter-spacing:1px;margin-top:2px;display:block}
+.nav{padding:.75rem 0;flex:1}
+.nav-section{padding:.25rem 1.25rem .25rem;font-family:var(--font-d);font-size:9px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;margin-top:.5rem}
+.nav-item{display:flex;align-items:center;gap:10px;padding:.5rem 1.25rem;cursor:pointer;transition:all .15s;border-left:2px solid transparent;font-size:13.5px;color:var(--text2);font-family:var(--font-b);font-weight:400}
+.nav-item:hover{background:var(--surface);color:var(--text);border-left-color:var(--border2)}
+.nav-item.active{background:var(--gold-dim);color:var(--gold2);border-left-color:var(--gold)}
+.nav-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;font-size:10px;background:var(--gold-dim);color:var(--gold);padding:1px 7px;border-radius:20px;font-family:var(--font-d)}
+.sidebar-footer{padding:1rem 1.25rem;border-top:1px solid var(--border)}
+.sidebar-footer p{font-size:11px;color:var(--text3);line-height:1.5}
+.sidebar-footer a{color:var(--gold);text-decoration:none;opacity:.8}
+
+/* ── MAIN ── */
+.main{overflow-y:auto;background:var(--bg)}
+.tab-content{display:none;padding:2rem 2.5rem;max-width:900px}
+.tab-content.active{display:block}
+
+/* ── PAGE HEADERS ── */
+.page-header{margin-bottom:2rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border)}
+.page-title{font-family:var(--font-d);font-size:20px;font-weight:600;color:var(--gold2);letter-spacing:2px;margin-bottom:.35rem}
+.page-sub{font-size:15px;color:var(--text2);font-style:italic}
+
+/* ── RUNE DIVIDER ── */
+.rune-div{display:flex;align-items:center;gap:12px;margin:1.5rem 0}
+.rune-div::before,.rune-div::after{content:'';flex:1;height:1px;background:var(--border)}
+.rune-div span{font-family:var(--font-d);font-size:16px;color:var(--gold);opacity:.4}
+
+/* ── SETUP PANEL ── */
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.setup-grid.single{grid-template-columns:1fr}
+.step-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;transition:border-color .2s}
+.step-card:focus-within{border-color:var(--border2)}
+.step-header{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
+.step-num{width:24px;height:24px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);font-size:11px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);flex-shrink:0;font-weight:600}
+.step-title{font-family:var(--font-d);font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase}
+label{display:block;font-size:13px;color:var(--text2);margin-bottom:5px;font-family:var(--font-b)}
+input[type=text],input[type=password],select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;color:var(--text);font-family:var(--font-m);font-size:13px;outline:none;transition:border-color .2s;margin-bottom:10px}
+input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,162,39,.08)}
+input::placeholder{color:var(--text3)}
+select option{background:var(--surface2)}
+.hint{font-size:11px;color:var(--text3);font-family:var(--font-m);margin-top:-6px;margin-bottom:8px}
+.hint a{color:var(--gold);text-decoration:none;opacity:.8}
+
+/* ── DROP ZONE ── */
+.drop-zone{border:1.5px dashed var(--border2);border-radius:var(--radius-lg);padding:1.5rem 1rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2);position:relative;min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.drop-zone.drag-over{border-color:var(--gold);background:rgba(201,162,39,.05)}
+.drop-zone.has-files{border-color:var(--success-t);border-style:solid}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-icon{font-size:24px;color:var(--gold);opacity:.4;margin-bottom:.4rem;font-family:var(--font-d)}
+.drop-text{font-size:13px;color:var(--text2)}
+.drop-exts{font-size:11px;font-family:var(--font-m);color:var(--text3);margin-top:3px}
+.file-list{margin-top:.75rem;display:flex;flex-direction:column;gap:5px}
+.file-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;display:flex;align-items:center;gap:8px}
+.file-name{font-size:12px;color:var(--text);font-family:var(--font-m);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-size{font-size:11px;color:var(--text3);flex-shrink:0}
+.file-status{font-size:11px;flex-shrink:0;min-width:60px;text-align:right}
+.file-status.ok{color:var(--success-t)}
+.file-status.err{color:var(--danger-t)}
+.file-status.uploading{color:var(--gold)}
+.file-status.pending{color:var(--text3)}
+
+/* ── CHECKBOX ROW ── */
+.check-row{display:flex;align-items:center;gap:9px;margin-bottom:.75rem}
+.check-row input[type=checkbox]{accent-color:var(--gold);width:14px;height:14px;flex-shrink:0}
+.check-row label{margin:0;font-size:13.5px;color:var(--text2);cursor:pointer;font-family:var(--font-b)}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:var(--radius);font-family:var(--font-d);font-size:11px;letter-spacing:2px;cursor:pointer;transition:all .2s;border:1px solid var(--border2);background:transparent;color:var(--text2)}
+.btn:hover:not(:disabled){background:var(--surface2);color:var(--text)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-gold{border-color:var(--gold);color:var(--gold);font-size:12px;padding:12px 24px;width:100%;margin-top:.5rem}
+.btn-gold:hover:not(:disabled){background:var(--gold-dim);color:var(--gold2)}
+.btn-sm{padding:6px 14px;font-size:10px}
+.btn-dl{border-color:var(--info-t);color:var(--info-t)}
+.btn-dl:hover{background:rgba(107,174,214,.1)!important;color:var(--info-t)!important}
+
+/* ── PROGRESS ── */
+.progress-wrap{height:2px;background:var(--border);border-radius:2px;margin-top:.75rem;overflow:hidden;display:none}
+.progress-bar{height:100%;background:var(--gold);width:0;transition:width .3s}
+
+/* ── ALERTS ── */
+.alert{padding:10px 14px;border-radius:var(--radius);font-size:13.5px;margin-top:.75rem;display:none;line-height:1.5;font-family:var(--font-b)}
+.alert.success{background:rgba(45,106,79,.2);border:1px solid var(--success-t);color:var(--success-t)}
+.alert.error{background:rgba(123,45,45,.2);border:1px solid var(--danger-t);color:var(--danger-t)}
+.alert.info{background:rgba(26,74,122,.2);border:1px solid var(--info-t);color:var(--info-t)}
+.alert.show{display:block}
+
+/* ── COLLAPSIBLE ── */
+.collapse-target{overflow:hidden;transition:max-height .3s ease,opacity .3s;max-height:1000px;opacity:1}
+.collapse-target.closed{max-height:0;opacity:0}
+
+/* ── README STYLES ── */
+.readme-nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.5rem}
+.readme-nav button{padding:6px 14px;border:1px solid var(--border2);border-radius:20px;background:transparent;color:var(--text2);font-family:var(--font-d);font-size:10px;letter-spacing:1.5px;cursor:pointer;transition:all .15s}
+.readme-nav button:hover,.readme-nav button.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold2)}
+.readme-section{display:none}
+.readme-section.active{display:block}
+.readme-section h2{font-family:var(--font-d);font-size:16px;color:var(--gold2);letter-spacing:2px;margin:1.5rem 0 .75rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}
+.readme-section h3{font-family:var(--font-d);font-size:13px;color:var(--text);letter-spacing:1.5px;margin:1.25rem 0 .5rem}
+.readme-section p{color:var(--text);font-size:15px;line-height:1.75;margin-bottom:.75rem}
+.readme-section ul,.readme-section ol{margin:.5rem 0 .75rem 1.25rem;font-size:15px;line-height:1.8;color:var(--text)}
+.readme-section li{margin-bottom:.2rem}
+.readme-section strong{color:var(--gold2);font-weight:600}
+.readme-section em{color:var(--text2);font-style:italic}
+
+/* ── CODE BLOCKS ── */
+pre{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;overflow-x:auto;margin:.5rem 0 1rem;position:relative}
+pre code,.inline-code{font-family:var(--font-m);font-size:12.5px;color:#a8d8a8;line-height:1.7}
+.inline-code{background:var(--surface2);padding:1px 6px;border-radius:4px;border:1px solid var(--border);font-size:12px;color:var(--info-t)}
+.copy-btn{position:absolute;top:8px;right:8px;background:var(--surface3);border:1px solid var(--border2);border-radius:4px;color:var(--text3);font-family:var(--font-d);font-size:9px;letter-spacing:1px;padding:3px 8px;cursor:pointer;transition:all .15s}
+.copy-btn:hover{color:var(--gold);border-color:var(--gold)}
+
+/* ── INFO BOXES ── */
+.info-box{border-radius:var(--radius);padding:.85rem 1rem;margin:.75rem 0;font-size:14px;line-height:1.6;border-left:3px solid}
+.info-box.warn{background:rgba(232,168,56,.08);border-color:var(--warn-t);color:var(--warn-t)}
+.info-box.tip{background:rgba(82,183,136,.08);border-color:var(--success-t);color:var(--success-t)}
+.info-box.note{background:rgba(107,174,214,.08);border-color:var(--info-t);color:var(--info-t)}
+.info-box strong{color:inherit}
+
+/* ── COMMAND TABLE ── */
+.cmd-table{width:100%;border-collapse:collapse;margin:.5rem 0 1rem;font-size:13.5px}
+.cmd-table th{text-align:left;padding:7px 12px;background:var(--surface2);border:1px solid var(--border);color:var(--gold);font-family:var(--font-d);font-size:10px;letter-spacing:1.5px;font-weight:500}
+.cmd-table td{padding:7px 12px;border:1px solid var(--border);vertical-align:top;line-height:1.5}
+.cmd-table td:first-child{font-family:var(--font-m);font-size:12px;color:var(--info-t);white-space:nowrap}
+.cmd-table td:last-child{color:var(--text2);font-family:var(--font-b);font-size:14px}
+.cmd-table tr:hover td{background:var(--surface)}
+
+/* ── STATUS PANEL (OUTPUT TAB) ── */
+.output-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;font-family:var(--font-m);font-size:12px;min-height:200px;color:var(--text2);line-height:1.8}
+.log-line{display:block}
+.log-line.ok{color:var(--success-t)}
+.log-line.warn{color:var(--warn-t)}
+.log-line.err{color:var(--danger-t)}
+.log-line.info{color:var(--info-t)}
+.log-line.gold{color:var(--gold2)}
+
+/* ── FILES OUTPUT ── */
+.file-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem;margin-top:.75rem}
+.file-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;transition:border-color .2s;cursor:pointer}
+.file-card:hover{border-color:var(--border2)}
+.file-card-icon{font-size:22px;margin-bottom:.5rem;opacity:.6}
+.file-card-name{font-family:var(--font-d);font-size:11px;letter-spacing:1px;color:var(--text);margin-bottom:.25rem}
+.file-card-desc{font-size:12px;color:var(--text3)}
+
+/* ── TOP BAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.75rem 2.5rem;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:10}
+.topbar-title{font-family:var(--font-d);font-size:11px;letter-spacing:2px;color:var(--text3);text-transform:uppercase}
+.topbar-actions{display:flex;gap:.5rem}
+
+/* ── SCROLL ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.tab-content.active{animation:fadeIn .25s ease}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <span class="brand-rune">ᚨ</span>
+    <span class="brand-title">MIDGARD REBORN</span>
+    <span class="brand-sub">Valheim Server Panel</span>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">Setup</div>
+    <div class="nav-item active" onclick="showTab('setup',this)">
+      <span class="nav-icon">⚔</span> Server Setup
+    </div>
+    <div class="nav-item" onclick="showTab('output',this)">
+      <span class="nav-icon">◈</span> Generated Files
+    </div>
+    <div class="nav-section">Documentation</div>
+    <div class="nav-item" onclick="showTab('readme-start',this)">
+      <span class="nav-icon">⊕</span> Quick Start
+    </div>
+    <div class="nav-item" onclick="showTab('readme-docker',this)">
+      <span class="nav-icon">◻</span> Docker Guide
+    </div>
+    <div class="nav-item" onclick="showTab('readme-backup',this)">
+      <span class="nav-icon">↺</span> Backup System
+    </div>
+    <div class="nav-item" onclick="showTab('readme-saves',this)">
+      <span class="nav-icon">◈</span> Save Files
+    </div>
+    <div class="nav-item" onclick="showTab('readme-ops',this)">
+      <span class="nav-icon">⊞</span> Server Ops
+    </div>
+    <div class="nav-item" onclick="showTab('readme-trouble',this)">
+      <span class="nav-icon">⚠</span> Troubleshooting
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <p>Uses <a href="https://github.com/lloesche/valheim-server-docker" target="_blank">lloesche/valheim-server-docker</a> &amp; <a href="https://uploadthing.com" target="_blank">UploadThing</a></p>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <span class="topbar-title" id="topbar-label">Server Setup</span>
+    <div class="topbar-actions">
+      <button class="btn btn-sm btn-dl" onclick="downloadAll()">⬇ Download All Files</button>
+    </div>
+  </div>
+
+  <!-- ══ TAB: SETUP ══ -->
+  <div class="tab-content active" id="tab-setup">
+    <div class="page-header">
+      <div class="page-title">SERVER SETUP</div>
+      <div class="page-sub">Configure your Valheim server and upload save files</div>
+    </div>
+
+    <div class="setup-grid">
+      <!-- Step 1: Server Config -->
+      <div class="step-card">
+        <div class="step-header"><span class="step-num">1</span><span class="step-title">Server Identity</span></div>
+        <label>Server name</label>
+        <input type="text" id="serverName" value="Midgard Reborn" placeholder="Midgard Reborn">
+        <label>World name</label>
+        <input type="text" id="worldName" value="MidgardWorld" placeholder="MidgardWorld">
+        <div class="hint">Must match your .db / .fwl filenames</div>
+        <label>Server password</label>
+        <input type="password" id="serverPass" placeholder="min 5 chars, not same as server name">
+        <label>Timezone</label>
+        <select id="timezone">
+          <option value="Asia/Singapore" selected>Asia/Singapore</option>
+          <option value="Asia/Tokyo">Asia/Tokyo</option>
+          <option value="Europe/London">Europe/London</option>
+          <option value="Europe/Berlin">Europe/Berlin</option>
+          <option value="America/New_York">America/New_York</option>
+          <option value="America/Los_Angeles">America/Los_Angeles</option>
+          <option value="Australia/Sydney">Australia/Sydney</option>
+          <option value="UTC">UTC</option>
+        </select>
+      </div>
+
+      <!-- Step 2: UploadThing -->
+      <div class="step-card">
+        <div class="step-header"><span class="step-num">2</span><span class="step-title">UploadThing</span></div>
+        <label>API Key</label>
+        <input type="password" id="apiKey" placeholder="sk_live_...">
+        <div class="hint"><a href="https://uploadthing.com" target="_blank">uploadthing.com</a> → Your App → API Keys</div>
+        <label>Backup frequency</label>
+        <select id="backupCron">
+          <option value="0 * * * *" selected>Every hour</option>
+          <option value="*/30 * * * *">Every 30 min</option>
+          <option value="0 */2 * * *">Every 2 hours</option>
+          <option value="0 */6 * * *">Every 6 hours</option>
+          <option value="0 0 * * *">Once daily (midnight)</option>
+        </select>
+        <label>Server visibility</label>
+        <select id="serverPublic">
+          <option value="1" selected>Public (shows in server list)</option>
+          <option value="0">Private (invite by IP only)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Step 3: Save files -->
+    <div class="step-card" style="margin-bottom:1rem">
+      <div class="step-header"><span class="step-num">3</span><span class="step-title">Save Files</span></div>
+      <div class="check-row">
+        <input type="checkbox" id="skipUpload" onchange="toggleUpload()">
+        <label for="skipUpload">Start with a fresh world — skip uploading save files</label>
+      </div>
+      <div id="uploadSection">
+        <label style="margin-bottom:8px">Drop your world save files</label>
+        <div class="drop-zone" id="dropZone">
+          <input type="file" id="fileInput" multiple accept=".db,.fwl,.db.old,.fwl.old" onchange="handleFiles(this.files)">
+          <div class="drop-icon">ᚠ</div>
+          <div class="drop-text">Drag &amp; drop <code class="inline-code">.db</code> and <code class="inline-code">.fwl</code> files here</div>
+          <div class="drop-exts">Windows path: %AppData%\..\LocalLow\IronGate\Valheim\worlds_local</div>
+        </div>
+        <div class="file-list" id="fileList"></div>
+      </div>
+    </div>
+
+    <!-- Step 4: Generate -->
+    <div class="step-card">
+      <div class="step-header"><span class="step-num">4</span><span class="step-title">Forge &amp; Generate</span></div>
+      <p style="font-size:14px;color:var(--text2);margin-bottom:.75rem;font-family:var(--font-b)">
+        Generates <span class="inline-code">docker-compose.yml</span>, <span class="inline-code">valheim-backup.sh</span>, and a full <span class="inline-code">README.md</span> tailored to your config. If save files are provided they will be uploaded to UploadThing first.
+      </p>
+      <button class="btn btn-gold" id="generateBtn" onclick="generate()">⚔ FORGE THE SERVER</button>
+      <div class="progress-wrap" id="progressWrap"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="alert success" id="successAlert"></div>
+      <div class="alert error" id="errorAlert"></div>
+    </div>
+  </div>
+
+  <!-- ══ TAB: OUTPUT ══ -->
+  <div class="tab-content" id="tab-output">
+    <div class="page-header">
+      <div class="page-title">GENERATED FILES</div>
+      <div class="page-sub">Click any file to preview, then download individually or all at once</div>
+    </div>
+    <div class="file-grid" id="fileGrid">
+      <div style="grid-column:1/-1;color:var(--text3);font-size:14px;font-style:italic;font-family:var(--font-b)">
+        No files generated yet — complete the setup and click "Forge the Server"
+      </div>
+    </div>
+    <div class="rune-div"><span>ᚱ</span></div>
+    <div id="previewArea"></div>
+  </div>
+
+  <!-- ══ TAB: README - QUICK START ══ -->
+  <div class="tab-content" id="tab-readme-start">
+    <div class="page-header">
+      <div class="page-title">QUICK START</div>
+      <div class="page-sub">Get your Valheim server running in under 10 minutes</div>
+    </div>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin-bottom:1rem">Prerequisites</h2>
+    <ul style="font-size:15px;line-height:1.9;color:var(--text);margin-left:1.25rem;margin-bottom:1rem">
+      <li>A Linux VPS (Ubuntu 22.04+ recommended) with <strong style="color:var(--gold2)">2 vCPU / 4 GB RAM / 40 GB SSD</strong></li>
+      <li>Root SSH access to the VPS</li>
+      <li>A free <a href="https://uploadthing.com" style="color:var(--gold);text-decoration:none">UploadThing</a> account for backups</li>
+      <li>Ports <span class="inline-code">2456–2457 UDP</span> open on your firewall</li>
+    </ul>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin:.75rem 0 .75rem">5-Step Deploy</h2>
+
+    <h3 style="font-family:var(--font-d);font-size:12px;letter-spacing:1.5px;color:var(--text);margin:.5rem 0 .4rem">1 — Install Docker on your VPS</h3>
+    <div style="position:relative"><pre><code>sudo apt update && sudo apt install -y docker.io docker-compose-v2 curl jq
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER</code></pre><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+
+    <h3 style="font-family:var(--font-d);font-size:12px;letter-spacing:1.5px;color:var(--text);margin:.5rem 0 .4rem">2 — Upload your generated files</h3>
+    <div style="position:relative"><pre><code>scp docker-compose.yml valheim-backup.sh root@YOUR_VPS_IP:/opt/valheim/
+ssh root@YOUR_VPS_IP
+cd /opt/valheim && chmod +x valheim-backup.sh</code></pre><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+
+    <h3 style="font-family:var(--font-d);font-size:12px;letter-spacing:1.5px;color:var(--text);margin:.5rem 0 .4rem">3 — Open firewall ports</h3>
+    <div style="position:relative"><pre><code>sudo ufw allow 2456:2457/udp
+sudo ufw allow 22/tcp
+sudo ufw enable && sudo ufw reload</code></pre><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+
+    <h3 style="font-family:var(--font-d);font-size:12px;letter-spacing:1.5px;color:var(--text);margin:.5rem 0 .4rem">4 — Start the server</h3>
+    <div style="position:relative"><pre><code>docker compose up -d
+docker compose logs -f   # Watch startup (takes 2–5 min first time)</code></pre><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+
+    <h3 style="font-family:var(--font-d);font-size:12px;letter-spacing:1.5px;color:var(--text);margin:.5rem 0 .4rem">5 — Register hourly backup cron</h3>
+    <div style="position:relative"><pre><code>crontab -e
+# Add this line:
+0 * * * * /opt/valheim/valheim-backup.sh >> /var/log/valheim-backup.log 2>&1</code></pre><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+
+    <div class="info-box tip" style="margin-top:1rem">
+      <strong>Done!</strong> Connect in-game via <em>Add Server</em> → enter <span class="inline-code">YOUR_IP:2456</span>. You can also find your server by name in the public server browser if you set it to public.
+    </div>
+  </div>
+
+  <!-- ══ TAB: README - DOCKER ══ -->
+  <div class="tab-content" id="tab-readme-docker">
+    <div class="page-header">
+      <div class="page-title">DOCKER GUIDE</div>
+      <div class="page-sub">Understanding the container setup and configuration</div>
+    </div>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin-bottom:.75rem">Why Docker?</h2>
+    <p style="font-size:15px;color:var(--text);line-height:1.8;margin-bottom:.75rem">
+      The <span class="inline-code">lloesche/valheim-server-docker</span> image is the gold standard for self-hosted Valheim. It handles automatic game updates, graceful server restarts, and keeps your world data safely in named Docker volumes separate from the container.
+    </p>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin:.75rem 0 .75rem">Volume Layout</h2>
+    <table class="cmd-table">
+      <thead><tr><th>Volume</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>midgard_valheim_config</td><td>World saves, player data, server config — <strong style="color:var(--warn-t)">back this up!</strong></td></tr>
+        <tr><td>midgard_valheim_data</td><td>Valheim server binaries (re-downloadable, no need to back up)</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:13px;color:var(--text3);font-family:var(--font-m);margin-bottom:.75rem">
+      Host path: /var/lib/docker/volumes/midgard_valheim_config/_data/
+    </p>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin:.75rem 0 .75rem">Environment Variables</h2>
+    <table class="cmd-table">
+      <thead><tr><th>Variable</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>SERVER_NAME</td><td>Display name shown in server browser</td></tr>
+        <tr><td>WORLD_NAME</td><td>Must match your save file names exactly</td></tr>
+        <tr><td>SERVER_PASS</td><td>Min 5 chars. Cannot equal SERVER_NAME</td></tr>
+        <tr><td>SERVER_PUBLIC</td><td>1 = visible in server list, 0 = private</td></tr>
+        <tr><td>UPDATE_CRON</td><td>Cron for auto-update checks. Default: every 15 min</td></tr>
+        <tr><td>TZ</td><td>Server timezone for logs (e.g. Asia/Singapore)</td></tr>
+        <tr><td>BACKUPS</td><td>Set false — we use our own UploadThing backups</td></tr>
+      </tbody>
+    </table>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin:.75rem 0 .75rem">Common Docker Commands</h2>
+    <table class="cmd-table">
+      <thead><tr><th>Command</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>docker compose up -d</td><td>Start server in background</td></tr>
+        <tr><td>docker compose down</td><td>Stop server gracefully</td></tr>
+        <tr><td>docker compose restart</td><td>Restart container</td></tr>
+        <tr><td>docker compose logs -f</td><td>Stream live server logs</td></tr>
+        <tr><td>docker compose pull</td><td>Pull latest image version</td></tr>
+        <tr><td>docker stats midgard_valheim</td><td>CPU / RAM usage live</td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box warn">
+      <strong>Important:</strong> Every time the game updates, the server must also update or players can't connect. The Docker image handles this automatically via <span class="inline-code">UPDATE_CRON</span>.
+    </div>
+  </div>
+
+  <!-- ══ TAB: README - BACKUP ══ -->
+  <div class="tab-content" id="tab-readme-backup">
+    <div class="page-header">
+      <div class="page-title">BACKUP SYSTEM</div>
+      <div class="page-sub">Automated hourly uploads to UploadThing</div>
+    </div>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin-bottom:.75rem">How It Works</h2>
+    <p style="font-size:15px;color:var(--text);line-height:1.8;margin-bottom:.75rem">
+      The <span class="inline-code">valheim-backup.sh</span> script runs on a cron schedule. Each run it compresses your world files into a timestamped <span class="inline-code">.tar.gz</span>, requests a presigned upload URL from UploadThing's API, uploads the archive, then cleans up old local copies keeping only the last 3.
+    </p>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin:.75rem 0 .75rem">Backup Script Flow</h2>
+    <ol style="font-size:15px;line-height:2;color:var(--text);margin-left:1.25rem">
+      <li>Reads world files from Docker volume at <span class="inline-code">/var/lib/docker/volumes/midgard_valheim_config/_data/worlds_local</span></li>
+      <li>Creates <span class="inline-code">valheim_WORLDNAME_YYYYMMDD_HHMMSS.tar.gz</span> in <span class="inline-code">/tmp/valheim_backups/</span></li>
+      <li>Calls UploadThing <span class="inline-code">POST /v6/uploadFiles</span> to get a presigned URL</li>
+      <li>Uploads the archive via HTTP POST to the presigned URL</li>
+      <li>Logs the UploadThing file key for recovery reference</li>
+      <li>Removes all but the 3 newest local archives</li>
+    </ol>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin:.75rem 0 .75rem">Setup</h2>
+    <div style="position:relative"><pre><code># 1. Set your API key persistently
+echo 'export UPLOADTHING_API_KEY="sk_live_YOURKEY"' >> /etc/environment
+source /etc/environment
+
+# 2. Test the script manually
+/opt/valheim/valheim-backup.sh
+
+# 3. Watch the log
+tail -f /var/log/valheim-backup.log</code></pre><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin:.75rem 0 .75rem">Restoring a Backup</h2>
+    <div style="position:relative"><pre><code># 1. Download the archive from UploadThing (get URL from your UT dashboard)
+wget -O /tmp/restore.tar.gz "https://YOUR_APP_ID.ufs.sh/f/FILE_KEY"
+
+# 2. Stop the server
+cd /opt/valheim && docker compose down
+
+# 3. Extract into the volume
+tar -xzf /tmp/restore.tar.gz \
+  -C /var/lib/docker/volumes/midgard_valheim_config/_data/worlds_local/
+
+# 4. Restart
+docker compose up -d</code></pre><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+
+    <div class="info-box note">
+      <strong>Tip:</strong> UploadThing free tier gives you 2 GB storage. Each backup is typically 1–10 MB. At hourly backups you can keep 200–2000 snapshots before hitting the limit.
+    </div>
+  </div>
+
+  <!-- ══ TAB: README - SAVES ══ -->
+  <div class="tab-content" id="tab-readme-saves">
+    <div class="page-header">
+      <div class="page-title">SAVE FILES</div>
+      <div class="page-sub">Uploading and managing your Valheim world data</div>
+    </div>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin-bottom:.75rem">Save File Locations</h2>
+    <table class="cmd-table">
+      <thead><tr><th>OS</th><th>Path</th></tr></thead>
+      <tbody>
+        <tr><td>Windows</td><td>%AppData%\..\LocalLow\IronGate\Valheim\worlds_local\</td></tr>
+        <tr><td>macOS</td><td>~/Library/Application Support/unity3d/IronGate/Valheim/worlds_local/</td></tr>
+        <tr><td>Linux</td><td>~/.config/unity3d/IronGate/Valheim/worlds_local/</td></tr>
+        <tr><td>Server</td><td>/var/lib/docker/volumes/midgard_valheim_config/_data/worlds_local/</td></tr>
+      </tbody>
+    </table>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin:.75rem 0 .75rem">Required Files</h2>
+    <p style="font-size:15px;color:var(--text);line-height:1.8;margin-bottom:.75rem">
+      Each world consists of exactly two files. For a world named <span class="inline-code">MidgardWorld</span>:
+    </p>
+    <ul style="font-size:15px;line-height:2;color:var(--text);margin-left:1.25rem">
+      <li><span class="inline-code">MidgardWorld.db</span> — The actual world data (terrain, buildings, items)</li>
+      <li><span class="inline-code">MidgardWorld.fwl</span> — World metadata (seed, name, timestamps)</li>
+    </ul>
+    <div class="info-box warn" style="margin-top:.75rem">
+      <strong>Warning:</strong> The world name in WORLD_NAME must match these filenames exactly (case-sensitive on Linux). A mismatch will generate a new empty world.
+    </div>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin:.75rem 0 .75rem">Copying Saves to VPS After Upload</h2>
+    <p style="font-size:15px;color:var(--text);line-height:1.8;margin-bottom:.5rem">After uploading via this panel, run on your VPS:</p>
+    <div style="position:relative"><pre><code># Get your file URLs from UploadThing dashboard
+# Then download directly into the Docker volume:
+docker run --rm -v midgard_valheim_config:/config alpine sh -c "
+  wget -O /config/worlds_local/MidgardWorld.db  'https://UT_URL_FOR_DB' &&
+  wget -O /config/worlds_local/MidgardWorld.fwl 'https://UT_URL_FOR_FWL'
+"
+docker compose restart</code></pre><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin:.75rem 0 .75rem">SCP Direct Transfer (Alternative)</h2>
+    <div style="position:relative"><pre><code># From your local machine (skip UploadThing entirely):
+scp MidgardWorld.db MidgardWorld.fwl \
+  root@YOUR_VPS_IP:/var/lib/docker/volumes/midgard_valheim_config/_data/worlds_local/
+ssh root@YOUR_VPS_IP "cd /opt/valheim && docker compose restart"</code></pre><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+  </div>
+
+  <!-- ══ TAB: README - OPS ══ -->
+  <div class="tab-content" id="tab-readme-ops">
+    <div class="page-header">
+      <div class="page-title">SERVER OPERATIONS</div>
+      <div class="page-sub">Day-to-day management of your Valheim server</div>
+    </div>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin-bottom:.75rem">Monitoring</h2>
+    <div style="position:relative"><pre><code># Live server logs
+docker compose logs -f
+
+# Resource usage
+docker stats midgard_valheim
+
+# Backup log
+tail -100 /var/log/valheim-backup.log
+
+# Check cron is registered
+crontab -l</code></pre><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin:.75rem 0 .75rem">Updating the Server</h2>
+    <div style="position:relative"><pre><code># Manual update (the container also auto-updates via UPDATE_CRON)
+cd /opt/valheim
+docker compose pull
+docker compose down && docker compose up -d</code></pre><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin:.75rem 0 .75rem">Admin Commands</h2>
+    <p style="font-size:15px;color:var(--text);line-height:1.8;margin-bottom:.5rem">
+      To use admin commands in-game, add your Steam ID to the admin list:
+    </p>
+    <div style="position:relative"><pre><code># Find your Steam ID at steamidfinder.com, then:
+echo "YOUR_STEAM_ID_64" >> \
+  /var/lib/docker/volumes/midgard_valheim_config/_data/adminlist.txt
+docker compose restart</code></pre><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin:.75rem 0 .75rem">Whitelist &amp; Bans</h2>
+    <table class="cmd-table">
+      <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>adminlist.txt</td><td>Steam IDs with admin commands access</td></tr>
+        <tr><td>permittedlist.txt</td><td>Whitelist — only these Steam IDs can join</td></tr>
+        <tr><td>bannedlist.txt</td><td>Banned Steam IDs (blocked from joining)</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:13px;color:var(--text3);font-family:var(--font-m);margin-top:.25rem">
+      All files located at: /var/lib/docker/volumes/midgard_valheim_config/_data/
+    </p>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin:.75rem 0 .75rem">Auto-restart on Reboot</h2>
+    <p style="font-size:15px;color:var(--text);line-height:1.8;margin-bottom:.5rem">
+      The compose file uses <span class="inline-code">restart: unless-stopped</span> — the server automatically comes back after a VPS reboot. Verify Docker itself starts on boot:
+    </p>
+    <div style="position:relative"><pre><code>sudo systemctl is-enabled docker   # should say "enabled"
+# If not:
+sudo systemctl enable docker</code></pre><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+  </div>
+
+  <!-- ══ TAB: README - TROUBLESHOOT ══ -->
+  <div class="tab-content" id="tab-readme-trouble">
+    <div class="page-header">
+      <div class="page-title">TROUBLESHOOTING</div>
+      <div class="page-sub">Common issues and how to fix them</div>
+    </div>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin-bottom:.75rem">Server Not Appearing in Browser</h2>
+    <ul style="font-size:15px;line-height:1.9;color:var(--text);margin-left:1.25rem">
+      <li>Ensure UDP ports 2456–2457 are open: <span class="inline-code">sudo ufw status</span></li>
+      <li>Connect directly by IP: Add Server → <span class="inline-code">YOUR_IP:2456</span></li>
+      <li>Check server is running: <span class="inline-code">docker compose ps</span></li>
+      <li>It can take up to 5 minutes on first launch for the server to register publicly</li>
+    </ul>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin:.75rem 0 .75rem">PlayFab / Crossplay Errors</h2>
+    <div class="info-box warn">
+      <strong>Known issue:</strong> The Linux server occasionally has PlayFab authentication errors. Add <span class="inline-code">SERVER_ARGS: "-crossplay"</span> to the environment in <span class="inline-code">docker-compose.yml</span> or remove it entirely to disable crossplay and resolve the error.
+    </div>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin:.75rem 0 .75rem">World Generates Fresh (Saves Not Loading)</h2>
+    <ul style="font-size:15px;line-height:1.9;color:var(--text);margin-left:1.25rem">
+      <li>Confirm WORLD_NAME in <span class="inline-code">docker-compose.yml</span> exactly matches your <span class="inline-code">.db</span> / <span class="inline-code">.fwl</span> filenames (case-sensitive)</li>
+      <li>Check files exist: <span class="inline-code">ls /var/lib/docker/volumes/midgard_valheim_config/_data/worlds_local/</span></li>
+      <li>Ensure both <span class="inline-code">.db</span> and <span class="inline-code">.fwl</span> are present — one without the other will fail</li>
+    </ul>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin:.75rem 0 .75rem">Backup Script Fails</h2>
+    <div style="position:relative"><pre><code># Check the log for errors
+tail -50 /var/log/valheim-backup.log
+
+# Common: UPLOADTHING_API_KEY not set
+echo $UPLOADTHING_API_KEY   # should print your key
+
+# Common: jq not installed
+sudo apt install -y jq
+
+# Common: worlds path not found — check volume path
+docker volume inspect midgard_valheim_config</code></pre><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
+
+    <h2 style="font-family:var(--font-d);font-size:15px;color:var(--gold2);letter-spacing:2px;margin:.75rem 0 .75rem">High CPU / RAM Usage</h2>
+    <ul style="font-size:15px;line-height:1.9;color:var(--text);margin-left:1.25rem">
+      <li>CPU spikes are normal when players explore new areas (world generation)</li>
+      <li>For 6–10 players upgrade to 4 vCPU / 8 GB RAM</li>
+      <li>Mods significantly increase resource usage — budget accordingly</li>
+      <li>Monitor with: <span class="inline-code">docker stats midgard_valheim</span></li>
+    </ul>
+
+    <div class="info-box tip" style="margin-top:1rem">
+      <strong>Still stuck?</strong> Check the <a href="https://valheim.fandom.com/wiki/Dedicated_servers" style="color:var(--success-t)">Valheim Wiki</a> or the <a href="https://github.com/lloesche/valheim-server-docker" style="color:var(--success-t)">Docker image GitHub</a> for up-to-date solutions.
+    </div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ── NAV ──
+const tabLabels = {
+  'setup':'Server Setup','output':'Generated Files',
+  'readme-start':'Quick Start','readme-docker':'Docker Guide',
+  'readme-backup':'Backup System','readme-saves':'Save Files',
+  'readme-ops':'Server Ops','readme-trouble':'Troubleshooting'
+};
+
+function showTab(id, el) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const tab = document.getElementById('tab-' + id);
+  if (tab) tab.classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('topbar-label').textContent = tabLabels[id] || id;
+}
+
+// ── FILE HANDLING ──
+let selectedFiles = [];
+
+function toggleUpload() {
+  const skip = document.getElementById('skipUpload').checked;
+  const section = document.getElementById('uploadSection');
+  section.style.opacity = skip ? '0.3' : '1';
+  section.style.pointerEvents = skip ? 'none' : 'auto';
+  validate();
+}
+
+function formatBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+  return (b / 1048576).toFixed(1) + ' MB';
+}
+
+function handleFiles(files) {
+  selectedFiles = Array.from(files);
+  renderFileList();
+  validate();
+}
+
+function renderFileList() {
+  const list = document.getElementById('fileList');
+  const dz = document.getElementById('dropZone');
+  list.innerHTML = '';
+  selectedFiles.forEach((f, i) => {
+    const div = document.createElement('div');
+    div.className = 'file-item';
+    div.id = 'fi-' + i;
+    div.innerHTML = `<span class="file-name">${f.name}</span><span class="file-size">${formatBytes(f.size)}</span><span class="file-status pending" id="fst-${i}">ready</span>`;
+    list.appendChild(div);
+  });
+  dz.classList.toggle('has-files', selectedFiles.length > 0);
+}
+
+// Drag and drop
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag-over');
+  handleFiles(e.dataTransfer.files);
+});
+
+// ── VALIDATION ──
+function validate() {
+  const skip = document.getElementById('skipUpload').checked;
+  const hasKey = document.getElementById('apiKey').value.trim().length > 5;
+  const hasWorld = document.getElementById('worldName').value.trim().length > 0;
+  const hasPass = document.getElementById('serverPass').value.trim().length >= 5;
+  const hasFiles = selectedFiles.length >= 1;
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = !(hasKey && hasWorld && hasPass && (skip || hasFiles));
+}
+
+['apiKey','worldName','serverPass','serverName'].forEach(id => {
+  document.getElementById(id).addEventListener('input', validate);
+});
+
+// ── UPLOAD TO UPLOADTHING ──
+function setFileStatus(i, state, text) {
+  const el = document.getElementById('fst-' + i);
+  if (el) { el.className = 'file-status ' + state; el.textContent = text; }
+}
+
+async function uploadFile(file, apiKey, index) {
+  setFileStatus(index, 'uploading', 'uploading...');
+  const presignRes = await fetch('https://api.uploadthing.com/v6/uploadFiles', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Uploadthing-Api-Key': apiKey },
+    body: JSON.stringify({
+      files: [{ name: file.name, size: file.size, type: 'application/octet-stream' }],
+      acl: 'private', contentDisposition: 'attachment'
+    })
+  });
+  if (!presignRes.ok) throw new Error('Presign request failed: ' + presignRes.status);
+  const presignData = await presignRes.json();
+  const slot = presignData.data?.[0];
+  if (!slot?.url) throw new Error('No upload URL in response');
+
+  const form = new FormData();
+  if (slot.fields) Object.entries(slot.fields).forEach(([k, v]) => form.append(k, v));
+  form.append('file', file);
+
+  const upRes = await fetch(slot.url, { method: 'POST', body: form });
+  if (!upRes.ok && upRes.status !== 204) throw new Error('Upload HTTP error: ' + upRes.status);
+
+  setFileStatus(index, 'ok', 'uploaded ✓');
+  return { name: file.name, key: slot.key || slot.fileKey || file.name };
+}
+
+// ── GENERATE CONFIG FILES ──
+function buildDockerCompose(cfg) {
+  return `services:
+  valheim:
+    image: lloesche/valheim-server
+    container_name: midgard_valheim
+    restart: unless-stopped
+    cap_add:
+      - sys_nice
+    ports:
+      - "2456:2456/udp"
+      - "2457:2457/udp"
+    environment:
+      SERVER_NAME: "${cfg.serverName}"
+      WORLD_NAME: "${cfg.worldName}"
+      SERVER_PASS: "${cfg.serverPass}"
+      SERVER_PUBLIC: "${cfg.serverPublic}"
+      UPDATE_CRON: "*/15 * * * *"
+      BACKUPS: "false"
+      TZ: "${cfg.timezone}"
+    volumes:
+      - valheim_config:/config
+      - valheim_data:/opt/valheim
+    ulimits:
+      nofile:
+        soft: 1000000
+        hard: 1000000
+
+volumes:
+  valheim_config:
+    name: midgard_valheim_config
+  valheim_data:
+    name: midgard_valheim_data
+`;
+}
+
+function buildBackupScript(cfg) {
+  return `#!/usr/bin/env bash
+# =============================================================================
+#  valheim-backup.sh — Backup Valheim world to UploadThing
+#  Configured for: ${cfg.serverName} / World: ${cfg.worldName}
+#  Cron schedule: ${cfg.backupCron}
+#
+#  SETUP:
+#    chmod +x valheim-backup.sh
+#    crontab -e  →  add:
+#    ${cfg.backupCron} /opt/valheim/valheim-backup.sh >> /var/log/valheim-backup.log 2>&1
+# =============================================================================
+
+set -euo pipefail
+
+UPLOADTHING_API_KEY="\${UPLOADTHING_API_KEY:-"${cfg.apiKey}"}"
+WORLD_NAME="${cfg.worldName}"
+BACKUP_DIR="/tmp/valheim_backups"
+TIMESTAMP=\$(date +"%Y%m%d_%H%M%S")
+ARCHIVE_NAME="valheim_\${WORLD_NAME}_\${TIMESTAMP}.tar.gz"
+ARCHIVE_PATH="\${BACKUP_DIR}/\${ARCHIVE_NAME}"
+WORLDS_PATH="/var/lib/docker/volumes/midgard_valheim_config/_data/worlds_local"
+
+GREEN='\\033[0;32m'; YELLOW='\\033[1;33m'; RED='\\033[0;31m'; NC='\\033[0m'
+log()  { echo -e "\${GREEN}[\$(date '+%H:%M:%S')] ✔ \$1\${NC}"; }
+warn() { echo -e "\${YELLOW}[\$(date '+%H:%M:%S')] ⚠ \$1\${NC}"; }
+fail() { echo -e "\${RED}[\$(date '+%H:%M:%S')] ✘ \$1\${NC}"; exit 1; }
+
+command -v curl >/dev/null 2>&1 || fail "curl not installed"
+command -v jq   >/dev/null 2>&1 || fail "jq not installed (sudo apt install jq)"
+command -v tar  >/dev/null 2>&1 || fail "tar not installed"
+
+[[ "\$UPLOADTHING_API_KEY" == "sk_live_REPLACE_ME" ]] && \\
+  fail "Set UPLOADTHING_API_KEY as env var or in this script"
+
+[[ -d "\$WORLDS_PATH" ]] || \\
+  fail "Worlds path not found: \$WORLDS_PATH"
+
+mkdir -p "\$BACKUP_DIR"
+
+log "Creating archive: \${ARCHIVE_NAME}"
+tar -czf "\$ARCHIVE_PATH" -C "\$WORLDS_PATH" .
+FILE_SIZE=\$(stat -c%s "\$ARCHIVE_PATH")
+log "Archive ready — \$(numfmt --to=iec \$FILE_SIZE)"
+
+log "Requesting presigned URL from UploadThing..."
+PRESIGN_RESPONSE=\$(curl -sf -X POST "https://api.uploadthing.com/v6/uploadFiles" \\
+  -H "Content-Type: application/json" \\
+  -H "X-Uploadthing-Api-Key: \${UPLOADTHING_API_KEY}" \\
+  -d "{
+    \\"files\\": [{\\"name\\": \\"\${ARCHIVE_NAME}\\", \\"size\\": \${FILE_SIZE}, \\"type\\": \\"application/gzip\\"}],
+    \\"acl\\": \\"private\\", \\"contentDisposition\\": \\"attachment\\"
+  }") || fail "Failed to get presigned URL"
+
+UPLOAD_URL=\$(echo "\$PRESIGN_RESPONSE" | jq -r '.data[0].url // empty')
+FILE_KEY=\$(echo "\$PRESIGN_RESPONSE"  | jq -r '.data[0].key // empty')
+[[ -z "\$UPLOAD_URL" ]] && fail "Could not parse upload URL. Response: \$PRESIGN_RESPONSE"
+log "Got presigned URL (key: \${FILE_KEY})"
+
+log "Uploading to UploadThing..."
+FIELDS=\$(echo "\$PRESIGN_RESPONSE" | jq -r '.data[0].fields | to_entries[] | "-F \\"\(.key)=\(.value)\\""' 2>/dev/null || echo "")
+HTTP_STATUS=\$(eval curl -sf -o /dev/null -w "%{http_code}" \\
+  -X POST "\$UPLOAD_URL" \$FIELDS \\
+  -F "file=@\${ARCHIVE_PATH};type=application/gzip")
+
+if [[ "\$HTTP_STATUS" == "204" || "\$HTTP_STATUS" == "200" || "\$HTTP_STATUS" == "201" ]]; then
+  log "Upload succeeded (HTTP \${HTTP_STATUS})"
+else
+  warn "POST returned \${HTTP_STATUS}, trying direct PUT..."
+  HTTP_STATUS=\$(curl -sf -o /dev/null -w "%{http_code}" \\
+    -X PUT "\$UPLOAD_URL" -H "Content-Type: application/gzip" \\
+    --data-binary "@\${ARCHIVE_PATH}")
+  [[ "\$HTTP_STATUS" == "200" || "\$HTTP_STATUS" == "204" ]] || \\
+    fail "Upload failed with HTTP \${HTTP_STATUS}"
+  log "Upload succeeded via PUT (HTTP \${HTTP_STATUS})"
+fi
+
+log "Cleaning up old local backups (keeping last 3)..."
+ls -t "\${BACKUP_DIR}"/valheim_*.tar.gz 2>/dev/null | tail -n +4 | xargs -r rm --
+
+log "🛡  Backup complete: \${ARCHIVE_NAME}"
+log "📁  UploadThing key: \${FILE_KEY}"
+`;
+}
+
+function buildReadme(cfg, uploadedFiles) {
+  const hasUploads = uploadedFiles.length > 0;
+  const uploadNote = hasUploads
+    ? `Uploaded files: ${uploadedFiles.map(f => f.name).join(', ')}\nRetrieve from UploadThing dashboard to restore.`
+    : 'Started with a fresh world.';
+
+  return `# 🪓 ${cfg.serverName} — Valheim Dedicated Server
+
+> Docker + UploadThing backup setup — auto-generated by Midgard Reborn Panel
+
+---
+
+## Server Details
+
+| Setting | Value |
+|---|---|
+| Server Name | ${cfg.serverName} |
+| World Name | ${cfg.worldName} |
+| Visibility | ${cfg.serverPublic === '1' ? 'Public' : 'Private'} |
+| Timezone | ${cfg.timezone} |
+| Backup Schedule | \`${cfg.backupCron}\` |
+
+**Save files:** ${uploadNote}
+
+---
+
+## Quick Start
+
+\`\`\`bash
+# 1. Install Docker
+sudo apt update && sudo apt install -y docker.io docker-compose-v2 curl jq
+sudo systemctl enable --now docker
+
+# 2. Upload these files to your VPS
+scp docker-compose.yml valheim-backup.sh root@YOUR_VPS_IP:/opt/valheim/
+ssh root@YOUR_VPS_IP
+cd /opt/valheim && chmod +x valheim-backup.sh
+
+# 3. Open firewall ports
+sudo ufw allow 2456:2457/udp && sudo ufw reload
+
+# 4. Set UploadThing API key
+echo 'export UPLOADTHING_API_KEY="${cfg.apiKey}"' >> /etc/environment
+source /etc/environment
+
+# 5. Start the server
+docker compose up -d
+docker compose logs -f
+\`\`\`
+
+---
+
+## Connecting
+
+- In Valheim: **Join Game → Add Server → \`YOUR_VPS_IP:2456\`**
+- Or search for **"${cfg.serverName}"** in the public server browser
+
+---
+
+## Backup Setup
+
+\`\`\`bash
+# Test backup manually
+/opt/valheim/valheim-backup.sh
+
+# Add to cron (runs on schedule: ${cfg.backupCron})
+crontab -e
+# Add line:
+${cfg.backupCron} /opt/valheim/valheim-backup.sh >> /var/log/valheim-backup.log 2>&1
+
+# Watch backup log
+tail -f /var/log/valheim-backup.log
+\`\`\`
+
+---
+
+## Restoring a Backup
+
+\`\`\`bash
+# Download archive from UploadThing (get URL from your UT dashboard)
+wget -O /tmp/restore.tar.gz "https://YOUR_APP_ID.ufs.sh/f/FILE_KEY"
+
+cd /opt/valheim && docker compose down
+tar -xzf /tmp/restore.tar.gz \\
+  -C /var/lib/docker/volumes/midgard_valheim_config/_data/worlds_local/
+docker compose up -d
+\`\`\`
+
+---
+
+## World Save Location (on VPS)
+
+\`\`\`
+/var/lib/docker/volumes/midgard_valheim_config/_data/worlds_local/
+  ${cfg.worldName}.db      ← world data
+  ${cfg.worldName}.fwl     ← metadata
+\`\`\`
+
+---
+
+## Common Commands
+
+| Command | Description |
+|---|---|
+| \`docker compose up -d\` | Start server |
+| \`docker compose down\` | Stop server |
+| \`docker compose logs -f\` | Live logs |
+| \`docker compose pull && docker compose up -d\` | Update server |
+| \`docker stats midgard_valheim\` | Resource usage |
+
+---
+
+## Troubleshooting
+
+**Server not showing in browser?** Connect directly: \`YOUR_IP:2456\`. Ensure UDP 2456–2457 open.
+
+**PlayFab errors?** Add \`SERVER_ARGS: "-crossplay"\` to docker-compose.yml environment, or remove it entirely.
+
+**World resets on each start?** WORLD_NAME must exactly match your .db/.fwl filenames (case-sensitive).
+
+**Backup fails?** Run \`echo \$UPLOADTHING_API_KEY\` to verify key is set. Install jq: \`sudo apt install jq\`.
+`;
+}
+
+// ── MAIN GENERATE ──
+let generatedFiles = {};
+
+async function generate() {
+  const btn = document.getElementById('generateBtn');
+  const progressWrap = document.getElementById('progressWrap');
+  const progressBar = document.getElementById('progressBar');
+  const successAlert = document.getElementById('successAlert');
+  const errorAlert = document.getElementById('errorAlert');
+
+  btn.disabled = true;
+  successAlert.classList.remove('show');
+  errorAlert.classList.remove('show');
+  progressWrap.style.display = 'block';
+  progressBar.style.width = '5%';
+
+  const cfg = {
+    serverName: document.getElementById('serverName').value.trim(),
+    worldName: document.getElementById('worldName').value.trim(),
+    serverPass: document.getElementById('serverPass').value.trim(),
+    timezone: document.getElementById('timezone').value,
+    apiKey: document.getElementById('apiKey').value.trim(),
+    backupCron: document.getElementById('backupCron').value,
+    serverPublic: document.getElementById('serverPublic').value
+  };
+
+  const skip = document.getElementById('skipUpload').checked;
+  let uploadedFiles = [];
+
+  try {
+    // Upload save files if any
+    if (!skip && selectedFiles.length > 0) {
+      for (let i = 0; i < selectedFiles.length; i++) {
+        progressBar.style.width = Math.round(5 + (i / selectedFiles.length) * 60) + '%';
+        const result = await uploadFile(selectedFiles[i], cfg.apiKey, i);
+        uploadedFiles.push(result);
+      }
+    }
+
+    progressBar.style.width = '80%';
+
+    // Build file contents
+    generatedFiles = {
+      'docker-compose.yml': { content: buildDockerCompose(cfg), lang: 'yaml', icon: '◻', desc: 'Docker compose config' },
+      'valheim-backup.sh':  { content: buildBackupScript(cfg),  lang: 'bash', icon: '↺', desc: 'Hourly backup script' },
+      'README.md':          { content: buildReadme(cfg, uploadedFiles), lang: 'markdown', icon: '⊕', desc: 'Full documentation' }
+    };
+
+    progressBar.style.width = '100%';
+    renderFileGrid();
+
+    const uploadMsg = uploadedFiles.length > 0
+      ? `${uploadedFiles.length} save file(s) uploaded to UploadThing.`
+      : 'No save files uploaded (fresh world).';
+
+    successAlert.innerHTML = `<strong>Forged successfully!</strong> ${uploadMsg} Switch to <em>Generated Files</em> to download.`;
+    successAlert.classList.add('show');
+
+    // Auto-switch to output tab
+    setTimeout(() => showTab('output', document.querySelector('.nav-item:nth-child(3)')), 800);
+
+  } catch (err) {
+    errorAlert.textContent = 'Error: ' + err.message;
+    errorAlert.classList.add('show');
+    progressBar.style.width = '0%';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderFileGrid() {
+  const grid = document.getElementById('fileGrid');
+  grid.innerHTML = '';
+  Object.entries(generatedFiles).forEach(([name, f]) => {
+    const card = document.createElement('div');
+    card.className = 'file-card';
+    card.innerHTML = `<div class="file-card-icon" style="color:var(--gold);font-family:var(--font-d)">${f.icon}</div><div class="file-card-name">${name}</div><div class="file-card-desc">${f.desc}</div>`;
+    card.onclick = () => previewFile(name, f);
+    grid.appendChild(card);
+
+    const dlBtn = document.createElement('button');
+    dlBtn.className = 'btn btn-sm';
+    dlBtn.style = 'width:100%;margin-top:.5rem;font-size:10px';
+    dlBtn.textContent = '⬇ Download';
+    dlBtn.onclick = (e) => { e.stopPropagation(); downloadFile(name, f.content); };
+    card.appendChild(dlBtn);
+  });
+}
+
+function previewFile(name, f) {
+  const area = document.getElementById('previewArea');
+  area.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+      <span style="font-family:var(--font-d);font-size:12px;color:var(--gold);letter-spacing:1.5px">${name}</span>
+      <button class="btn btn-sm btn-dl" onclick="downloadFile('${name}',generatedFiles['${name}'].content)">⬇ Download</button>
+    </div>
+    <div style="position:relative">
+      <pre><code>${escapeHtml(f.content)}</code></pre>
+      <button class="copy-btn" onclick="copyText(generatedFiles['${name}'].content,this)">COPY</button>
+    </div>
+  `;
+  area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function downloadFile(name, content) {
+  const blob = new Blob([content], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+}
+
+function downloadAll() {
+  if (!Object.keys(generatedFiles).length) {
+    alert('Generate your server config first on the Setup tab.');
+    return;
+  }
+  Object.entries(generatedFiles).forEach(([name, f]) => {
+    setTimeout(() => downloadFile(name, f.content), 0);
+  });
+}
+
+function copyCode(btn) {
+  const code = btn.previousElementSibling?.querySelector('code')?.textContent || btn.previousElementSibling?.textContent || '';
+  copyText(code, btn);
+}
+
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'COPIED';
+    btn.style.color = 'var(--success-t)';
+    setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1500);
+  });
+}
+</script>
+</body>
+</html>
