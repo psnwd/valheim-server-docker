@@ -1,0 +1,31 @@
+services:
+  valheim:
+    image: lloesche/valheim-server
+    container_name: midgard_valheim
+    restart: unless-stopped
+    cap_add:
+      - sys_nice
+    ports:
+      - "2456:2456/udp"
+      - "2457:2457/udp"
+    environment:
+      SERVER_NAME: "Midgard Reborn"
+      WORLD_NAME: "MidgardWorld"
+      SERVER_PASS: "changeme123"       # ⚠️  Change this — min 5 chars, not same as server name
+      SERVER_PUBLIC: "1"
+      UPDATE_CRON: "*/15 * * * *"      # Auto-update check every 15 min
+      BACKUPS: "false"                  # Disable built-in backups (we use our own)
+      TZ: "Asia/Singapore"
+    volumes:
+      - valheim_config:/config
+      - valheim_data:/opt/valheim
+    ulimits:
+      nofile:
+        soft: 1000000
+        hard: 1000000
+
+volumes:
+  valheim_config:
+    name: midgard_valheim_config
+  valheim_data:
+    name: midgard_valheim_data
